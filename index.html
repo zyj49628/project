@@ -17,10 +17,30 @@
             padding: 8px;
             text-align: left;
         }
+        .images {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .images img {
+            max-width: 45%;
+            height: auto;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
     <h1>豆瓣图书</h1>
+    
+    <!-- 图片部分 -->
+    <div class="images">
+        <img src="images/作者国家分布.png" alt="图片 1">
+        <img src="images/评分分布.png" alt="图片 2">
+    </div>
+
+    <!-- 表格部分 -->
     <table id="csv-table"></table>
 
     <script>
