@@ -6,16 +6,46 @@
     <title>豆瓣图书</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            font-size: 2.5em;
+            text-align: center;
+            margin-bottom: 20px;
+            color: black;
+        }
+        h2 {
+            font-size: 1.5em;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: black;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
-        }
-        table, th, td {
-            border: 1px solid black;
+            margin-bottom: 40px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         th, td {
-            padding: 8px;
+            padding: 12px;
             text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #e0e0e0;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        td:first-child {
+            background-color: #e0e0e0;
         }
         .images {
             display: flex;
@@ -29,46 +59,129 @@
             border: 1px solid #ccc;
             border-radius: 8px;
         }
+        .search {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .search input {
+            padding: 10px;
+            width: 300px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            margin: 0 10px;
+        }
+        .search button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .search button:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
     <h1>豆瓣图书</h1>
-    
+
+    <div class="search">
+        <input type="text" id="search-title" placeholder="输入书名进行检索">
+        <input type="text" id="search-author" placeholder="输入作者进行检索">
+        <input type="text" id="search-country" placeholder="输入国家进行检索">
+        <button onclick="searchBooks()">检索</button>
+    </div>
+
+    <h2>数据概览</h2>
     <!-- 表格部分 -->
     <table id="csv-table"></table>
 
+    <h2>数据统计</h2>
     <!-- 图片部分 -->
-    <div class="images">
-        <img src="作者国家分布.png" alt="图片 1">
-        <img src="评分分布.png" alt="图片 2">
+    <div class="images" id="image-container">
+        <img src="作者国家分布.png" alt="作者国家分布">
+        <img src="评分分布.png" alt="评分分布">
     </div>
 
     <script>
         // 使用PapaParse库读取CSV文件
+        let bookData = [];
+        let bookTitleField = "";
+        let bookAuthorField = "";
+        let bookCountryField = "";
+
         Papa.parse('https://raw.githubusercontent.com/zyj49628/project/main/books.csv', {
             download: true,
             header: true,
             complete: function(results) {
                 console.log(results);
+                bookData = results.data;
                 var table = document.getElementById("csv-table");
+
+                // 动态识别字段
+                const keys = Object.keys(results.data[0]);
+                bookTitleField = keys.find(key => key.includes("名称")) || keys[0];
+                bookAuthorField = keys.find(key => key.includes("作者")) || keys[1];
+                bookCountryField = keys.find(key => key.includes("国家")) || keys[2];
 
                 // 创建表头
                 var headerRow = table.insertRow();
-                Object.keys(results.data[0]).forEach(function(key) {
+                keys.forEach(function(key) {
                     var cell = headerRow.insertCell();
                     cell.textContent = key;
                 });
+                headerRow.style.backgroundColor = "#e0e0e0";
 
                 // 创建表格数据行
                 results.data.forEach(function(row) {
                     var tableRow = table.insertRow();
-                    Object.values(row).forEach(function(cellData) {
+                    Object.values(row).forEach(function(cellData, index) {
                         var cell = tableRow.insertCell();
-                        cell.textContent = cellData;
+                        cell.textContent = cellData || "";
+                        if (index === 0) {
+                            cell.style.backgroundColor = "#e0e0e0";
+                        }
                     });
                 });
             }
         });
+
+        // 检索功能
+        function searchBooks() {
+            const titleValue = document.getElementById('search-title').value.toLowerCase();
+            const authorValue = document.getElementById('search-author').value.toLowerCase();
+            const countryValue = document.getElementById('search-country').value.toLowerCase();
+            const table = document.getElementById("csv-table");
+
+            // 检查数据是否加载
+            if (!bookData.length || !bookTitleField || !bookAuthorField || !bookCountryField) {
+                alert("数据尚未加载或未找到必要字段。");
+                return;
+            }
+
+            // 清空表格
+            while (table.rows.length > 1) {
+                table.deleteRow(1);
+            }
+
+            // 显示匹配的行
+            bookData.filter(row => {
+                const titleMatch = (row[bookTitleField] || "").toLowerCase().includes(titleValue);
+                const authorMatch = (row[bookAuthorField] || "").toLowerCase().includes(authorValue);
+                const countryMatch = (row[bookCountryField] || "").toLowerCase().includes(countryValue);
+                return titleMatch && authorMatch && countryMatch;
+            }).forEach(function(row) {
+                var tableRow = table.insertRow();
+                Object.values(row).forEach(function(cellData, index) {
+                    var cell = tableRow.insertCell();
+                    cell.textContent = cellData || "";
+                    if (index === 0) {
+                        cell.style.backgroundColor = "#e0e0e0";
+                    }
+                });
+            });
+        }
     </script>
 </body>
 </html>
