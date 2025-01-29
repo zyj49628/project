@@ -1,36 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>豆瓣图书</title>
+    <title>豆瓣书籍 Top250</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            background-color: #f8f9fa;
+        }
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 15px;
+            background-color: white;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .nav a {
+            text-decoration: none;
+            color: #007BFF;
+            font-size: 1.2em;
+            padding: 5px 15px;
+        }
+        .nav a:hover {
+            color: #0056b3;
         }
         h1 {
-            font-size: 2.5em;
             text-align: center;
-            margin-bottom: 20px;
-            color: black;
-        }
-        h2 {
-            font-size: 1.5em;
-            margin-top: 40px;
-            margin-bottom: 20px;
-            text-align: center;
-            color: black;
+            font-size: 2em;
+            margin: 30px 0;
+            color: #333;
         }
         table {
-            width: 100%;
+            width: 80%;
+            margin: 0 auto;
             border-collapse: collapse;
-            margin-bottom: 40px;
-            border: 1px solid #ccc;
+            background-color: white;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         th, td {
             padding: 12px;
@@ -41,23 +52,11 @@
             background-color: #e0e0e0;
             font-weight: bold;
         }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
         tr:hover {
-            background-color: #f1f1f1;
-        }
-        td:first-child {
-            background-color: #e0e0e0;
-        }
-        .images {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 20px 0;
-        }
-        .images img {
-            max-width: 45%;
-            height: auto;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            background-color: #ddd;
         }
         .search {
             text-align: center;
@@ -65,17 +64,17 @@
         }
         .search input {
             padding: 10px;
-            width: 300px;
+            width: 250px;
             border: 1px solid #ccc;
-            border-radius: 8px;
-            margin: 0 10px;
+            border-radius: 5px;
+            margin: 0 5px;
         }
         .search button {
             padding: 10px 20px;
             border: none;
             background-color: #007BFF;
             color: white;
-            border-radius: 8px;
+            border-radius: 5px;
             cursor: pointer;
         }
         .search button:hover {
@@ -84,28 +83,24 @@
     </style>
 </head>
 <body>
-    <h1>豆瓣图书</h1>
-
+    <div class="nav">
+        <a href="index.html">首页</a>
+        <a href="countries.html">国家</a>
+        <a href="ratings.html">评分</a>
+    </div>
+    
+    <h1>豆瓣书籍 Top250 书籍</h1>
+    
     <div class="search">
         <input type="text" id="search-title" placeholder="输入书名进行检索">
         <input type="text" id="search-author" placeholder="输入作者进行检索">
         <input type="text" id="search-country" placeholder="输入国家进行检索">
         <button onclick="searchBooks()">检索</button>
     </div>
-
-    <h2>数据概览</h2>
-    <!-- 表格部分 -->
+    
     <table id="csv-table"></table>
-
-    <h2>数据统计</h2>
-    <!-- 图片部分 -->
-    <div class="images" id="image-container">
-        <img src="作者国家分布.png" alt="作者国家分布">
-        <img src="评分分布.png" alt="评分分布">
-    </div>
-
+    
     <script>
-        // 使用PapaParse库读取CSV文件
         let bookData = [];
         let bookTitleField = "";
         let bookAuthorField = "";
@@ -119,13 +114,11 @@
                 bookData = results.data;
                 var table = document.getElementById("csv-table");
 
-                // 动态识别字段
                 const keys = Object.keys(results.data[0]);
                 bookTitleField = keys.find(key => key.includes("名称")) || keys[0];
                 bookAuthorField = keys.find(key => key.includes("作者")) || keys[1];
                 bookCountryField = keys.find(key => key.includes("国家")) || keys[2];
 
-                // 创建表头
                 var headerRow = table.insertRow();
                 keys.forEach(function(key) {
                     var cell = headerRow.insertCell();
@@ -133,39 +126,31 @@
                 });
                 headerRow.style.backgroundColor = "#e0e0e0";
 
-                // 创建表格数据行
                 results.data.forEach(function(row) {
                     var tableRow = table.insertRow();
-                    Object.values(row).forEach(function(cellData, index) {
+                    Object.values(row).forEach(function(cellData) {
                         var cell = tableRow.insertCell();
                         cell.textContent = cellData || "";
-                        if (index === 0) {
-                            cell.style.backgroundColor = "#e0e0e0";
-                        }
                     });
                 });
             }
         });
 
-        // 检索功能
         function searchBooks() {
             const titleValue = document.getElementById('search-title').value.toLowerCase();
             const authorValue = document.getElementById('search-author').value.toLowerCase();
             const countryValue = document.getElementById('search-country').value.toLowerCase();
             const table = document.getElementById("csv-table");
 
-            // 检查数据是否加载
             if (!bookData.length || !bookTitleField || !bookAuthorField || !bookCountryField) {
                 alert("数据尚未加载或未找到必要字段。");
                 return;
             }
 
-            // 清空表格
             while (table.rows.length > 1) {
                 table.deleteRow(1);
             }
 
-            // 显示匹配的行
             bookData.filter(row => {
                 const titleMatch = (row[bookTitleField] || "").toLowerCase().includes(titleValue);
                 const authorMatch = (row[bookAuthorField] || "").toLowerCase().includes(authorValue);
@@ -173,12 +158,9 @@
                 return titleMatch && authorMatch && countryMatch;
             }).forEach(function(row) {
                 var tableRow = table.insertRow();
-                Object.values(row).forEach(function(cellData, index) {
+                Object.values(row).forEach(function(cellData) {
                     var cell = tableRow.insertCell();
                     cell.textContent = cellData || "";
-                    if (index === 0) {
-                        cell.style.backgroundColor = "#e0e0e0";
-                    }
                 });
             });
         }
